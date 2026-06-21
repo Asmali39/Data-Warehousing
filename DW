@@ -1,0 +1,181 @@
+-- 1. Date Dimension Table (Reusable for both check-in/out and review dates)
+CREATE TABLE Dim_Date_AsmaliM (
+    date_key INT PRIMARY KEY,
+    full_date DATE NOT NULL,
+    day_of_week VARCHAR(10),
+    month_name VARCHAR(10),
+    year SMALLINT,
+    quarter TINYINT
+);
+
+-- 2. Customer Dimension Table (Reusable)
+CREATE TABLE Dim_Customer_AsmaliM (
+    customer_key INT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    email_id VARCHAR(255),
+    auth_provider VARCHAR(50)
+);
+
+-- 3. Host Dimension Table (Reusable)
+CREATE TABLE Dim_Host_AsmaliM (
+    host_key INT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    email_id VARCHAR(100),
+    phone_no VARCHAR(20)
+);
+
+-- 4. Stay Dimension Table (Reusable)
+CREATE TABLE Dim_Stay_AsmaliM (
+    stay_key INT PRIMARY KEY,
+    title VARCHAR(100),
+    description TEXT,
+    property_type VARCHAR(50),
+    location VARCHAR(100),
+    bedrooms INT,
+    bathrooms DECIMAL(3,1),
+    price_per_night DECIMAL(15,2)
+);
+
+-- 5. Experience Dimension Table (Reusable)
+CREATE TABLE Dim_Experience_AsmaliM (
+    experience_key INT PRIMARY KEY,
+    title VARCHAR(255),
+    description TEXT,
+    location VARCHAR(100),
+    price_per_person DECIMAL(10,2),
+    duration_hours DECIMAL(4,2)
+);
+
+-- 6. Booking Fact Table
+CREATE TABLE Fact_Booking_AsmaliM (
+    booking_key INT PRIMARY KEY,
+    customer_key INT NOT NULL,
+    host_key INT NOT NULL,
+    stay_key INT,               -- Can be NULL if it's an experience booking
+    experience_key INT,         -- Can be NULL if it's a stay booking
+    date_key_check_in INT NOT NULL,
+    date_key_check_out INT NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    guests_count INT NOT NULL,
+    
+    FOREIGN KEY (customer_key) REFERENCES Dim_Customer_AsmaliM(customer_key),
+    FOREIGN KEY (host_key) REFERENCES Dim_Host_AsmaliM(host_key),
+    FOREIGN KEY (stay_key) REFERENCES Dim_Stay_AsmaliM(stay_key),
+    FOREIGN KEY (experience_key) REFERENCES Dim_Experience_AsmaliM(experience_key),
+    FOREIGN KEY (date_key_check_in) REFERENCES Dim_Date_AsmaliM(date_key),
+    FOREIGN KEY (date_key_check_out) REFERENCES Dim_Date_AsmaliM(date_key)
+);
+
+-- 7. Review Fact Table
+CREATE TABLE Fact_Review_AsmaliM (
+    review_key INT PRIMARY KEY,
+    customer_key INT NOT NULL,
+    host_key INT NOT NULL,
+    stay_key INT,               -- Can be NULL if it's an experience review
+    experience_key INT,         -- Can be NULL if it's a stay review
+    date_key_review INT NOT NULL,
+    rating TINYINT NOT NULL,    -- Measure
+    review_text TEXT,
+    
+    FOREIGN KEY (customer_key) REFERENCES Dim_Customer_AsmaliM(customer_key),
+    FOREIGN KEY (host_key) REFERENCES Dim_Host_AsmaliM(host_key),
+    FOREIGN KEY (stay_key) REFERENCES Dim_Stay_AsmaliM(stay_key),
+    FOREIGN KEY (experience_key) REFERENCES Dim_Experience_AsmaliM(experience_key),
+    FOREIGN KEY (date_key_review) REFERENCES Dim_Date_AsmaliM(date_key)
+);
+
+INSERT INTO Dim_Date_AsmaliM (date_key, full_date, day_of_week, month_name, year, quarter) VALUES
+(20250914, '2025-09-14', 'Sunday', 'September', 2025, 3),
+(20250915, '2025-09-15', 'Monday', 'September', 2025, 3),
+(20250918, '2025-09-18', 'Thursday', 'September', 2025, 3),
+(20251001, '2025-10-01', 'Wednesday', 'October', 2025, 4),
+(20251005, '2025-10-05', 'Sunday', 'October', 2025, 4),
+(20251101, '2025-11-01', 'Saturday', 'November', 2025, 4),
+(20251103, '2025-11-03', 'Monday', 'November', 2025, 4),
+(20251206, '2025-12-06', 'Saturday', 'December', 2025, 4),
+(20251208, '2025-12-08', 'Monday', 'December', 2025, 4),
+(20260120, '2026-01-20', 'Tuesday', 'January', 2026, 1);
+
+INSERT INTO Dim_Customer_AsmaliM (customer_key, first_name, last_name, email_id, auth_provider) VALUES
+(1, 'Elias', 'Altan', 'elias.altan@example.com', 'google'),
+(2, 'Serena', 'Riaz', 'serena.riaz@example.com', 'facebook'),
+(3, 'Victor', 'Tran', 'victor.tran@example.com', 'email'),
+(4, 'Paige', 'Jones', 'paige.jones@example.com', 'google'),
+(5, 'David', 'Clark', 'david.clark@example.com', 'email'),
+(6, 'Nancy', 'Ann', 'nancy.ann@example.com', 'facebook'),
+(7, 'Marcus', 'Lee', 'marcus.lee@example.com', 'google'),
+(8, 'Chloe', 'Evans', 'chloe.evans@example.com', 'email'),
+(9, 'Liam', 'Patel', 'liam.patel@example.com', 'facebook'),
+(10, 'Yara', 'Santos', 'yara.santos@example.com', 'email');
+
+INSERT INTO Dim_Host_AsmaliM (host_key, first_name, last_name, email_id, phone_no) VALUES
+(1, 'Samir', 'Hasan', 'samir.host@example.com', '+1 770-555-1111'),
+(2, 'Leila', 'Khan', 'leila.host@example.com', '+1 770-555-2222'),
+(3, 'Carlos', 'Diaz', 'carlos.host@example.com', '+1 775-555-3333'),
+(4, 'Anna', 'Bela', 'anna.host@example.com', '+1 775-555-4444'),
+(5, 'Tina', 'Sharma', 'tina.host@example.com', '+1 777-555-5555'),
+(6, 'Nick', 'Miller', 'nick.host@example.com', '+1 777-555-6666'),
+(7, 'Kaleen', 'Gupta', 'kaleen.host@example.com', '+1 778-555-7777'),
+(8, 'Ben', 'Smith', 'ben.host@example.com', '+1 778-555-8888'),
+(9, 'Mia', 'Lopez', 'mia.host@example.com', '+1 779-555-9999'),
+(10, 'Chris', 'West', 'chris.host@example.com', '+1 779-555-0000');
+
+INSERT INTO Dim_Stay_AsmaliM (stay_key, title, description, property_type, location, bedrooms, bathrooms, price_per_night) VALUES
+(1, 'Cozy Loft Downtown', 'Light and airy loft near the riverwalk.', 'Loft', 'Chicago, IL, USA', 1, 1.0, 150.00),
+(2, 'Japanese Studio', 'Quiet guesthouse with full amenities.', 'Guesthouse', 'Franklin, IL, USA', 1, 1.0, 65.00),
+(3, 'Urban Oasis', 'Private room in a lush apartment.', 'Apartment', 'Chicago, IL, USA', 1, 1.5, 95.00),
+(4, 'Mountain Cottage', 'Charming cottage near ski resorts.', 'Cottage', 'Estes Park, CO, USA', 2, 2.0, 250.00),
+(5, 'The Ruby Studio', 'Private Entrance/Bath in Denton.', 'Guesthouse', 'Denton, TX, USA', 1, 1.0, 60.00),
+(6, 'Beachfront Condo', 'Luxurious condo with ocean views.', 'Condo', 'Miami, FL, USA', 3, 3.5, 350.00),
+(7, 'Rustic Cabin Getaway', 'Secluded cabin with firepit and lake access.', 'Cabin', 'Asheville, NC, USA', 2, 1.0, 180.00),
+(8, 'Family Home Suburbia', 'Spacious house in a quiet suburban neighborhood.', 'House', 'Dallas, TX, USA', 4, 2.5, 200.00),
+(9, 'Downtown Penthouse', 'Modern penthouse with city views and balcony.', 'Apartment', 'New York, NY, USA', 2, 2.0, 450.00),
+(10, 'Historic Brownstone', 'Charming room in a restored historic building.', 'Room', 'Boston, MA, USA', 1, 1.0, 120.00);
+
+INSERT INTO Dim_Experience_AsmaliM (experience_key, title, description, location, price_per_person, duration_hours) VALUES
+(1, 'Architecture Walk', 'Explore city buildings and local landmarks.', 'Chicago, IL, USA', 45.00, 2.50),
+(2, 'Street Food Tour', 'Sample local favorites and hidden eateries.', 'Chicago, IL, USA', 55.00, 3.00),
+(3, 'Wine Tasting', 'Sample wines at a local vineyard and learn.', 'Lake Geneva, WI, USA', 75.00, 2.00),
+(4, 'Photography Workshop', 'Learn basic photography techniques and editing.', 'Chicago, IL, USA', 85.00, 3.50),
+(5, 'Brush & Sip Painting', 'Relaxed painting class with wine.', 'Plano, TX, USA', 60.00, 1.50),
+(6, 'History Walking Tour', 'Discover the history of the neighborhood.', 'Grapevine, TX, USA', 129.00, 3.00),
+(7, 'Sunset Kayaking', 'Guided kayaking trip at sunset on the lake.', 'Austin, TX, USA', 50.00, 2.00),
+(8, 'Local Cooking Class', 'Learn to cook a traditional regional meal.', 'New Orleans, LA, USA', 95.00, 4.00),
+(9, 'Mountain Biking Trail', 'Guided ride through scenic mountain trails.', 'Denver, CO, USA', 80.00, 3.00),
+(10, 'Pottery Workshop', 'Create your own ceramic piece from scratch.', 'Seattle, WA, USA', 70.00, 2.50);
+
+INSERT INTO Fact_Booking_AsmaliM (
+    booking_key, customer_key, host_key, stay_key, experience_key, 
+    date_key_check_in, date_key_check_out, total_amount, guests_count
+) VALUES
+-- Stay Bookings (stay_key IS NOT NULL, experience_key IS NULL)
+(1, 1, 1, 1, NULL, 20250914, 20250918, 600.00, 2),   -- Elias booked Cozy Loft (4 nights @ 150)
+(2, 2, 5, 5, NULL, 20251101, 20251103, 120.00, 1),   -- Serena booked Ruby Studio (2 nights @ 60)
+(3, 3, 2, 2, NULL, 20251001, 20251005, 260.00, 2),   -- Victor booked Japanese Studio (4 nights @ 65)
+(4, 4, 6, 6, NULL, 20251206, 20251208, 700.00, 4),   -- Paige booked Beachfront Condo (2 nights @ 350)
+(5, 5, 8, 7, NULL, 20250915, 20250918, 540.00, 3),   -- David booked Rustic Cabin (3 nights @ 180)
+-- Experience Bookings (stay_key IS NULL, experience_key IS NOT NULL)
+(6, 6, 1, NULL, 1, 20250914, 20250914, 90.00, 2),    -- Nancy booked Architecture Walk (2 people @ 45)
+(7, 7, 7, NULL, 5, 20251005, 20251005, 180.00, 3),    -- Marcus booked Brush & Sip (3 people @ 60)
+(8, 8, 3, NULL, 3, 20251101, 20251101, 150.00, 2),    -- Chloe booked Wine Tasting (2 people @ 75)
+(9, 9, 2, NULL, 6, 20251208, 20251208, 387.00, 3),    -- Liam booked History Tour (3 people @ 129)
+(10, 10, 4, NULL, 7, 20260120, 20260120, 100.00, 2);   -- Yara booked Sunset Kayaking (2 people @ 50)
+
+INSERT INTO Fact_Review_AsmaliM (
+    review_key, customer_key, host_key, stay_key, experience_key, 
+    date_key_review, rating, review_text
+) VALUES
+-- Stay Reviews
+(1, 1, 1, 1, NULL, 20250918, 5, 'Perfect location and very clean!'),
+(2, 3, 2, 2, NULL, 20251005, 4, 'Great value for money, but check-in was confusing.'),
+(3, 4, 6, 6, NULL, 20251208, 5, 'The condo was stunning and the host was responsive.'),
+(4, 5, 8, 7, NULL, 20250918, 5, 'Secluded and peaceful. Highly recommend this cabin.'),
+(5, 10, 5, 5, NULL, 20260120, 3, 'The studio was smaller than expected, but the location was good.'),
+-- Experience Reviews
+(6, 6, 1, NULL, 1, 20250915, 5, 'Wonderful tour, learned so much about the city!'),
+(7, 7, 7, NULL, 5, 20251005, 5, 'Brush and Sip was a fantastic and fun evening.'), 
+(8, 8, 3, NULL, 3, 20251103, 4, 'Excellent wine, though the host talked a bit too fast.'),
+(9, 9, 2, NULL, 6, 20251208, 5, 'Very engaging history walk, worth every penny.'),
+(10, 2, 4, NULL, 7, 20251005, 5, 'Beautiful sunset on the lake. Our guide was professional.');
