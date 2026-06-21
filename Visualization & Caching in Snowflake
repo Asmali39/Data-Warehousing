@@ -1,0 +1,251 @@
+USE ROLE TRAINING_ROLE;
+USE SCHEMA SNOWBEARAIR_DB.PROMO_CATALOG_SALES;
+CREATE WAREHOUSE IF NOT EXISTS JACKAL_wh;
+USE WAREHOUSE JACKAL_WH;
+
+SELECT 
+  YEAR(o.o_orderdate) AS year,
+  SUM(l.l_extendedprice) AS sum_gross_revenue
+        
+FROM
+        CUSTOMER C
+        INNER JOIN ORDERS O ON C.C_CUSTKEY = O.O_CUSTKEY
+        INNER JOIN LINEITEM L ON O.O_ORDERKEY = L.L_ORDERKEY
+
+GROUP BY year
+ORDER BY year;
+
+USE ROLE TRAINING_ROLE;
+USE WAREHOUSE JACKAL_WH;
+CREATE DATABASE IF NOT EXISTS JACKAL_DB;
+USE SCHEMA JACKAL_DB.PUBLIC;
+
+ALTER WAREHOUSE JACKAL_WH SUSPEND;
+ALTER WAREHOUSE JACKAL_WH RESUME;
+
+CREATE TABLE customer AS
+SELECT 
+       c_custkey
+     , c_firstname
+     , c_lastname
+  FROM 
+       SNOWBEARAIR_DB.PROMO_CATALOG_SALES.customer;
+
+ALTER WAREHOUSE JACKAL_WH SUSPEND;
+
+SELECT DISTINCT
+        *
+FROM 
+       customer c;
+USE ROLE TRAINING_ROLE;
+USE WAREHOUSE JACKAL_WH;
+USE SCHEMA SNOWFLAKE_SAMPLE_DATA.TPCH_SF10;
+ALTER SESSION SET USE_CACHED_RESULT = FALSE;
+
+SELECT 
+          MIN(ps_partkey)
+        , MAX(ps_partkey) 
+        
+FROM 
+        PARTSUPP;
+ALTER SESSION SET USE_CACHED_RESULT = FALSE;
+ALTER WAREHOUSE JACKAL_WH SUSPEND;
+ALTER WAREHOUSE JACKAL_WH RESUME;
+
+SELECT 
+          ps_partkey
+        , ps_availqty
+        
+FROM 
+        PARTSUPP
+        
+WHERE 
+        ps_partkey > 1000000; 
+
+SELECT 
+          ps_partkey
+        , ps_availqty
+        
+FROM 
+        PARTSUPP
+        
+WHERE 
+        ps_partkey > 1000000; 
+
+SELECT 
+          ps_partkey
+        , ps_suppkey
+        , ps_availqty
+        , PS_supplycost
+        , ps_comment
+        
+FROM 
+        PARTSUPP
+        
+WHERE 
+        ps_partkey > 1000000;  
+
+USE ROLE TRAINING_ROLE;
+USE WAREHOUSE JACKAL_WH;
+USE SCHEMA SNOWFLAKE_SAMPLE_DATA.TPCDS_SF10TCL;
+ALTER WAREHOUSE JACKAL_WH SET WAREHOUSE_SIZE = 'XSMALL';
+ALTER SESSION SET USE_CACHED_RESULT=FALSE;
+ALTER WAREHOUSE JACKAL_WH SUSPEND;
+ALTER WAREHOUSE JACKAL_WH RESUME;
+
+SELECT  
+          C_CUSTOMER_SK
+        , C_LAST_NAME
+        , (CA_STREET_NUMBER || ' ' || CA_STREET_NAME) AS CUST_ADDRESS
+        , CA_CITY
+        , CA_STATE  
+FROM 
+          CUSTOMER
+          INNER JOIN CUSTOMER_ADDRESS ON C_CUSTOMER_ID = CA_ADDRESS_ID
+WHERE 
+        C_CUSTOMER_SK between 100000 and 600000
+        AND
+        C_LAST_NAME LIKE 'Johnson' 
+ORDER BY 
+          CA_CITY
+        , CA_STATE;
+
+SELECT  
+          C_CUSTOMER_SK
+        , C_LAST_NAME
+        , (CA_STREET_NUMBER || ' ' || CA_STREET_NAME) AS CUST_ADDRESS
+        , CA_CITY
+        , CA_STATE  
+FROM 
+          CUSTOMER
+          INNER JOIN CUSTOMER_ADDRESS ON C_CUSTOMER_ID = CA_ADDRESS_ID
+WHERE 
+        C_LAST_NAME = 'Johnson' 
+ORDER BY 
+          CA_CITY
+        , CA_STATE;
+
+USE ROLE TRAINING_ROLE;
+USE WAREHOUSE JACKAL_WH;
+USE SCHEMA SNOWFLAKE_SAMPLE_DATA.TPCDS_SF10TCL;
+ALTER WAREHOUSE JACKAL_WH SET WAREHOUSE_SIZE = 'XSMALL';
+
+
+ALTER SESSION SET USE_CACHED_RESULT=FALSE;
+ALTER WAREHOUSE JACKAL_WH SUSPEND;
+ALTER WAREHOUSE JACKAL_WH RESUME;
+
+SELECT 
+          cd_gender
+        , AVG(lp) average_list_price
+        , AVG(sp) average_sales_price
+        , AVG(qu) average_quantity
+FROM 
+        (
+          SELECT 
+                  cd_gender
+                , cs_order_number
+                , AVG(cs_list_price) lp
+                , AVG(cs_sales_price) sp
+                , AVG(cs_quantity) qu
+          FROM 
+                  catalog_sales
+                , date_dim
+                , customer_demographics
+          WHERE 
+                cs_sold_date_sk = d_date_sk
+                AND 
+                cs_bill_cdemo_sk = cd_demo_sk
+                AND 
+                d_year IN (2000) 
+                AND 
+                d_moy IN (1,2,3,4,5,6,7,8,9,10)
+         GROUP BY 
+                  cd_gender
+                , cs_order_number
+        ) inner_query
+GROUP BY 
+        cd_gender;
+
+ALTER WAREHOUSE JACKAL_WH SUSPEND;
+ALTER WAREHOUSE JACKAL_WH RESUME;
+
+SELECT 
+         cd_gender
+       , AVG(cs_list_price) lp
+       , AVG(cs_sales_price) sp
+       , AVG(cs_quantity) qu
+FROM 
+        catalog_sales
+      , date_dim
+      , customer_demographics
+WHERE 
+      cs_sold_date_sk = d_date_sk
+      AND 
+      cs_bill_cdemo_sk = cd_demo_sk
+      AND 
+      d_year IN (2000) 
+      AND 
+      d_moy IN (1,2,3,4,5,6,7,8,9,10)
+GROUP BY 
+          cd_gender;
+
+EXPLAIN
+SELECT 
+          cd_gender
+        , AVG(lp) average_list_price
+        , AVG(sp) average_sales_price
+        , AVG(qu) average_quantity
+FROM 
+        (
+          SELECT 
+                  cd_gender
+                , cs_order_number
+                , AVG(cs_list_price) lp
+                , AVG(cs_sales_price) sp
+                , AVG(cs_quantity) qu
+          FROM 
+                  catalog_sales
+                , date_dim
+                , customer_demographics
+          WHERE 
+                cs_sold_date_sk = d_date_sk
+                AND 
+                cs_bill_cdemo_sk = cd_demo_sk
+                AND 
+                d_year IN (2000) 
+                AND 
+                d_moy IN (1,2,3,4,5,6,7,8,9,10)
+          
+          GROUP BY 
+                  cd_gender
+                , cs_order_number
+        ) inner_query
+GROUP BY 
+        cd_gender;
+
+EXPLAIN        
+SELECT 
+         cd_gender
+       , AVG(cs_list_price) lp
+       , AVG(cs_sales_price) sp
+       , AVG(cs_quantity) qu
+FROM 
+        catalog_sales
+      , date_dim
+      , customer_demographics
+WHERE 
+      cs_sold_date_sk = d_date_sk
+      AND 
+      cs_bill_cdemo_sk = cd_demo_sk
+      AND 
+      d_year IN (2000) 
+      AND 
+      d_moy IN (1,2,3,4,5,6,7,8,9,10)
+GROUP BY 
+          cd_gender;
+
+
+ALTER WAREHOUSE JACKAL_WH
+    SET WAREHOUSE_SIZE = 'XSmall';
+ALTER WAREHOUSE JACKAL_WH SUSPEND;
