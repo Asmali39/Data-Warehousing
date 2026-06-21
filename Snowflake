@@ -1,0 +1,59 @@
+CREATE WAREHOUSE JACKAL_wh WITH
+  WAREHOUSE_SIZE = XSmall 
+  INITIALLY_SUSPENDED = true;
+
+USE WAREHOUSE JACKAL_wh;
+
+SHOW TABLES;
+
+SELECT *
+FROM members
+LIMIT 10;
+
+SELECT TOP 5
+    c.c_lastname,
+    c.c_firstname,
+    c.c_acctbal
+FROM snowbearair_db.promo_catalog_sales.customer c
+ORDER BY c.c_acctbal DESC;
+
+SELECT 
+  c_firstname,
+  c_lastname,
+  o_orderkey,
+  o_totalprice
+FROM
+  snowbearair_db.promo_catalog_sales.orders
+JOIN
+  snowbearair_db.promo_catalog_sales.customer
+ON
+  o_custkey = c_custkey
+ORDER BY o_totalprice DESC
+LIMIT 10;
+
+CREATE DATABASE JACKAL_db;
+
+USE DATABASE JACKAL_db;
+
+CREATE SCHEMA my_schema;
+
+USE SCHEMA my_schema;
+
+ALTER USER JACKAL    
+
+SET default_warehouse=JACKAL_wh
+    default_namespace=JACKAL_db.public
+    default_role=training_role;
+
+CREATE TEMPORARY TABLE my_favorite_actors (name VARCHAR);
+
+INSERT INTO my_favorite_actors
+VALUES
+  ('Heath Ledger'),
+  ('Michelle Pfeiffer'),
+  ('Meryl Street'),
+  ('Anthony Hopkins'),
+  ('Bruce Lee');
+
+SELECT * FROM my_favorite_actors;
+
